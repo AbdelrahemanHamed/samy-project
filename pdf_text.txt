@@ -1,0 +1,389 @@
+Data Base
+CCE 333
+Database Management System for a Sports Club
+Third Year Computer and Control Engineering
+Under the Supervision of: Dr. Ahmed El-Shafei
+Eng. Hagar Aatef
+Sec:1
+Prepared by:
+Ahmed Abdel Nasser Ibrahim Ahmed ID: 128250111
+Adham Mohamed Hassan Mohamed ID: 128250111
+Thomas Ayman Moﬁd Nashed ID: 128250109
+Ahmed Wael Ali Ibrahim ID: 128250111
+Ahmed Sami ID: 1282501112025/2026 - Second TermTable of Contents
+1. Introduction
+1.1 Project Description
+1.2 Problem Statement
+2. Conceptual Design
+2.1 Entity-Relationship Diagram (ERD)
+2.2 Enhanced ER-Diagram (EERD)
+3. Logical Design
+3.1 Relational Schema (Mapping Rules)
+3.2 Database Normalization (1NF, 2NF, 3NF)
+4. Physical Implementation (SQL)
+4.1 Data Deﬁnition Language (DDL)
+4.2 Data Manipulation Language (DML)
+4.3 Database Execution Screenshots
+5. Software Implementation (GUI)
+5.1 Application Interface Overview
+5.2 Front-end to Database Integration
+6. Conclusion1. Introduction
+1.1 Project Description
+This project presents the complete design and implementation of a Database
+Management System for a Sports Club. The system is designed to manage members,
+coaches, staff, sports activities, facilities, equipment, payments, and member
+dependents. The database captures all essential relationships between these entities,
+enabling eﬃcient data storage, retrieval, and management for the club's daily operations.
+1.2 Problem Statement
+Managing a sports club involves handling a large volume of interconnected data:
+member registrations, enrollment in various sports, coach assignments, facility
+bookings, equipment tracking, and payment processing. Without a structured database
+system, this data becomes prone to redundancy, inconsistency, and loss. This project
+addresses these challenges by designing a normalized relational database that ensures
+data integrity, eliminates redundancy, and supports eﬃcient querying for all club
+operations.2. Conceptual Design
+2.1 Entity-Relationship Diagram (ERD)
+The following ERD represents the conceptual design of the Sports Club database using
+Chen Notation. It identiﬁes all entities, their attributes (including derived, multivalued,
+and composite attributes), and the relationships between them with their cardinality and
+participation constraints.Figure 2.1: Entity-Relationship Diagram (Chen Notation)
+ERD Entities & Relationships Summary
+Entity Type Primary Key Key Attributes
+MEMBER Strong Member_ID Name, Gender, DOB,DEPENDENT Weak (Member_ID, Dep_Name) Phone(MV),
+Address(Composite)
+PAYMENT Strong Pay_ID Amount, Pay_Date
+SPORT Strong Sport_ID Sport_Name
+COACH Strong Coach_ID Name, Gender, DOB,
+Salary
+EQUIPMENT Strong Equip_ID Equip_Name, Condition
+FACILITY Strong Fac_ID Location, Capacity
+STAFF Strong Staff_ID Name, Gender, DOB, Role
+Relationship Between Type Participation
+HAS Member - Dependent 1:N (Identifying) Total for Dependent
+MAKES Member - Payment 1:N Partial for Member
+ENROLLS Member - Sport M:N Partial for both
+TRAINS Coach - Sport 1:N Total for Coach
+USES Sport - Equipment M:N Partial for both
+HOSTS Facility - Sport 1:N Total for Sport
+MANAGES Staff - Facility 1:N Partial for both2.2 Enhanced Entity-Relationship Diagram (EERD)
+The EERD introduces a generalization hierarchy. MEMBER, COACH, and STAFF share
+common attributes (Name, Gender, DOB, Age) which are abstracted into a PERSON
+superclass. The specialization is Total (every person must belong to at least one
+subclass) and Overlapping (a person can be both a Member and a Coach, for example).
+Figure 2.2: Enhanced Entity-Relationship Diagram (EERD)
+Constraint Value Meaning
+Completeness Total Every Person MUST belong to at
+least one subclass
+Disjointness Overlapping (o) A Person CAN belong to multiple
+subclasses simultaneously3. Logical Design
+3.1 Relational Schema (Mapping Rules)
+The following mapping rules were applied to convert the ERD to a relational schema:
+• Each strong entity maps to its own table with its primary key.
+• Weak entity maps to a table with composite PK (owner PK + partial key).
+• 1:N relationships: FK placed on the N-side table.
+• M:N relationships: new junction (associative) table with composite PK.
+• Multivalued attributes: separate table with composite PK.
+• Composite attributes: decomposed into atomic columns.
+• Derived attributes: NOT stored (computed at query time).
+Figure 3.1: Relational Schema Diagram
+Schema Deﬁnition
+# Table Name Columns
+1 MEMBER Member_ID (PK), Name, Gender,
+DOB, City, Street, ZipCode
+2 MEMBER_PHONE Member_ID (PK,FK), Phone (PK)
+3 DEPENDENT Member_ID (PK,FK), Dep_Name
+(PK), Relationship, DOB
+4 PAYMENT Pay_ID (PK), Member_ID (FK),
+Amount, Pay_Date
+5 ENROLLS Member_ID (PK,FK), Sport_ID
+(PK,FK), Enroll_Date
+6 SPORT Sport_ID (PK), Sport_Name, Fac_ID
+(FK), Coach_ID (FK)
+7 COACH Coach_ID (PK), Name, Gender, DOB,
+Salary
+8 EQUIPMENT Equip_ID (PK), Equip_Name,
+Condition
+9 USES Sport_ID (PK,FK), Equip_ID (PK,FK)
+10 FACILITY Fac_ID (PK), Location, Capacity,
+Staff_ID (FK)
+11 STAFF Staff_ID (PK), Name, Gender, DOB,
+Role3.2 Database Normalization
+3.2.1 First Normal Form (1NF)
+Rule: Every attribute must contain only atomic (indivisible) values. No repeating groups.
+Table 1NF Justiﬁcation
+MEMBER PASS Phone (multivalued) extracted to
+MEMBER_PHONE. Address
+decomposed to City, Street,
+ZipCode. Age (derived) not stored.
+MEMBER_PHONE PASS Each row stores one phone
+number. Composite PK
+(Member_ID, Phone).
+DEPENDENT PASS All attributes atomic. Age (derived)
+not stored.
+PAYMENT PASS All attributes atomic.
+ENROLLS PASS All attributes atomic.
+SPORT PASS All attributes atomic.
+COACH PASS All attributes atomic. Age (derived)
+not stored.
+EQUIPMENT PASS All attributes atomic.
+USES PASS All-key relation, no non-key
+attributes.
+FACILITY PASS All attributes atomic.
+STAFF PASS All attributes atomic. Age (derived)
+not stored.
+3.2.2 Second Normal Form (2NF)
+Rule: Must be in 1NF AND every non-key attribute must be fully functionally dependent
+on the entire primary key (no partial dependencies). Only relevant for composite PKs.
+• Single-PK tables (MEMBER, PAYMENT, SPORT, COACH, EQUIPMENT, FACILITY,
+STAFF): Partial dependency is structurally impossible. 2NF satisﬁed trivially.
+Table (Composite PK) Analysis 2NF
+MEMBER_PHONE (Member_ID,
+Phone)
+No non-key attributes exist. PASS
+DEPENDENT (Member_ID,
+Dep_Name)
+Relationship and DOB depend on
+full composite key, not on any
+single part.
+PASS
+ENROLLS (Member_ID, Sport_ID) Enroll_Date depends on full
+composite key (which member
+enrolled in which sport).
+PASS
+USES (Sport_ID, Equip_ID) No non-key attributes exist. PASS3.2.3 Third Normal Form (3NF)
+Rule: Must be in 2NF AND no non-key attribute may depend on another non-key attribute
+(no transitive dependencies).
+Table Functional Dependencies Transitive Dep? 3NF
+MEMBER Member_ID -> Name,
+Gender, DOB, City, Street,
+ZipCode
+None found PASS
+PAYMENT Pay_ID -> Member_ID,
+Amount, Pay_Date
+None PASS
+SPORT Sport_ID -> Sport_Name,
+Fac_ID, Coach_ID
+FKs don't determine other
+non-key attrs
+PASS
+COACH Coach_ID -> Name,
+Gender, DOB, Salary
+None PASS
+EQUIPMENT Equip_ID -> Equip_Name,
+Condition
+None PASS
+FACILITY Fac_ID -> Location,
+Capacity, Staff_ID
+None PASS
+STAFF Staff_ID -> Name, Gender,
+DOB, Role
+None PASS
+DEPENDENT (Member_ID, Dep_Name)
+-> Relationship, DOB
+None PASS
+ENROLLS (Member_ID, Sport_ID) ->
+Enroll_Date
+None PASS
+Conclusion: All 11 tables satisfy 1NF, 2NF, and 3NF.4. Physical Implementation (SQL)
+4.1 Data Deﬁnition Language (DDL)
+The following SQL statements create all database tables with proper constraints:
+-- =============================================
+-- Sports Club Database - DDL (CREATE TABLES)
+-- =============================================
+CREATE DATABASE IF NOT EXISTS sports_club;
+USE sports_club;
+-- 1. MEMBER
+CREATE TABLE MEMBER (
+Member_ID INT PRIMARY KEY AUTO_INCREMENT,
+Name VARCHAR(100) NOT NULL,
+Gender CHAR(1) CHECK (Gender IN ('M','F')),
+DOB DATE NOT NULL,
+City VARCHAR(50),
+Street VARCHAR(100),
+ZipCode VARCHAR(10)
+);
+-- 2. MEMBER_PHONE
+CREATE TABLE MEMBER_PHONE (
+Member_ID INT,
+Phone VARCHAR(20),
+PRIMARY KEY (Member_ID, Phone),
+FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID) ON DELETE CASCADE
+);
+-- 3. DEPENDENT
+CREATE TABLE DEPENDENT (
+Member_ID INT,
+Dep_Name VARCHAR(100),
+Relationship VARCHAR(50) NOT NULL,
+DOB DATE,
+PRIMARY KEY (Member_ID, Dep_Name),
+FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID) ON DELETE CASCADE
+);
+-- 4. STAFF
+CREATE TABLE STAFF (
+Staff_ID INT PRIMARY KEY AUTO_INCREMENT,
+Name VARCHAR(100) NOT NULL,
+Gender CHAR(1) CHECK (Gender IN ('M','F')),
+DOB DATE,
+Role VARCHAR(50));
+-- 5. FACILITY
+CREATE TABLE FACILITY (
+Fac_ID INT PRIMARY KEY AUTO_INCREMENT,
+Location VARCHAR(100) NOT NULL,
+Capacity INT,
+Staff_ID INT,
+FOREIGN KEY (Staff_ID) REFERENCES STAFF(Staff_ID) ON DELETE SET NULL
+);
+-- 6. COACH
+CREATE TABLE COACH (
+Coach_ID INT PRIMARY KEY AUTO_INCREMENT,
+Name VARCHAR(100) NOT NULL,
+Gender CHAR(1) CHECK (Gender IN ('M','F')),
+DOB DATE,
+Salary DECIMAL(10,2)
+);
+-- 7. SPORT
+CREATE TABLE SPORT (
+Sport_ID INT PRIMARY KEY AUTO_INCREMENT,
+Sport_Name VARCHAR(100) NOT NULL,
+Fac_ID INT,
+Coach_ID INT,
+FOREIGN KEY (Fac_ID) REFERENCES FACILITY(Fac_ID) ON DELETE SET NULL,
+FOREIGN KEY (Coach_ID) REFERENCES COACH(Coach_ID) ON DELETE SET NULL
+);
+-- 8. ENROLLS (Junction: Member M:N Sport)
+CREATE TABLE ENROLLS (
+Member_ID INT,
+Sport_ID INT,
+Enroll_Date DATE NOT NULL,
+PRIMARY KEY (Member_ID, Sport_ID),
+FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID) ON DELETE CASCADE,
+FOREIGN KEY (Sport_ID) REFERENCES SPORT(Sport_ID) ON DELETE CASCADE
+);
+-- 9. PAYMENT
+CREATE TABLE PAYMENT (
+Pay_ID INT PRIMARY KEY AUTO_INCREMENT,
+Member_ID INT NOT NULL,
+Amount DECIMAL(10,2) NOT NULL,
+Pay_Date DATE NOT NULL,
+FOREIGN KEY (Member_ID) REFERENCES MEMBER(Member_ID) ON DELETE CASCADE
+);
+-- 10. EQUIPMENTCREATE TABLE EQUIPMENT (
+Equip_ID INT PRIMARY KEY AUTO_INCREMENT,
+Equip_Name VARCHAR(100) NOT NULL,
+Condition_ VARCHAR(50)
+);
+-- 11. USES (Junction: Sport M:N Equipment)
+CREATE TABLE USES (
+Sport_ID INT,
+Equip_ID INT,
+PRIMARY KEY (Sport_ID, Equip_ID),
+FOREIGN KEY (Sport_ID) REFERENCES SPORT(Sport_ID) ON DELETE CASCADE,
+FOREIGN KEY (Equip_ID) REFERENCES EQUIPMENT(Equip_ID) ON DELETE CASCADE
+);4.2 Data Manipulation Language (DML)
+The following INSERT statements populate the database with sample data:
+-- =============================================
+-- Sports Club Database - DML (INSERT DATA)
+-- =============================================
+-- MEMBER
+INSERT INTO MEMBER (Member_ID, Name, Gender, DOB, City, Street, ZipCode) VALUES
+(1, 'Ahmed Hassan', 'M', '1998-03-15', 'Cairo', 'Nasr City St.', '11765'),
+(2, 'Sara Mohamed', 'F', '2000-07-22', 'Giza', 'Dokki St.', '12311'),
+(3, 'Omar Ali', 'M', '1999-11-05', 'Cairo', 'Heliopolis St.', '11341'),
+(4, 'Nour Ibrahim', 'F', '2001-01-18', 'Alexandria', 'Smouha St.', '21500'),
+(5, 'Youssef Khaled', 'M', '1997-09-30', 'Cairo', 'Maadi St.', '11728');
+-- MEMBER_PHONE
+INSERT INTO MEMBER_PHONE (Member_ID, Phone) VALUES
+(1, '01012345678'), (1, '01112345678'),
+(2, '01023456789'), (3, '01034567890'),
+(4, '01045678901'), (4, '01145678901'),
+(5, '01056789012');
+-- DEPENDENT
+INSERT INTO DEPENDENT (Member_ID, Dep_Name, Relationship, DOB) VALUES
+(1, 'Layla Ahmed', 'Daughter', '2020-05-10'),
+(1, 'Fatma Hassan', 'Wife', '1999-08-20'),
+(3, 'Ali Omar', 'Son', '2022-01-15'),
+(5, 'Mona Khaled', 'Wife', '1998-12-01');
+-- STAFF
+INSERT INTO STAFF (Staff_ID, Name, Gender, DOB, Role) VALUES
+(1, 'Mahmoud Samir', 'M', '1985-06-12', 'Manager'),
+(2, 'Heba Farouk', 'F', '1990-03-25', 'Receptionist'),
+(3, 'Tamer Adel', 'M', '1988-11-08', 'Maintenance');
+-- FACILITY
+INSERT INTO FACILITY (Fac_ID, Location, Capacity, Staff_ID) VALUES
+(1, 'Main Building - Hall A', 200, 1),
+(2, 'Swimming Pool Complex', 50, 2),
+(3, 'Outdoor Football Field', 300, 3),
+(4, 'Tennis Court Area', 30, 1);
+-- COACH
+INSERT INTO COACH (Coach_ID, Name, Gender, DOB, Salary) VALUES
+(1, 'Karim Mostafa', 'M', '1980-04-20', 5000.00),
+(2, 'Dina Nabil', 'F', '1985-09-14', 4500.00),
+(3, 'Hassan Magdy', 'M', '1978-12-01', 6000.00),
+(4, 'Rania Saeed', 'F', '1990-07-30', 4000.00);-- SPORT
+INSERT INTO SPORT (Sport_ID, Sport_Name, Fac_ID, Coach_ID) VALUES
+(1, 'Football', 3, 1),
+(2, 'Swimming', 2, 2),
+(3, 'Tennis', 4, 3),
+(4, 'Basketball', 1, 4);
+-- ENROLLS
+INSERT INTO ENROLLS (Member_ID, Sport_ID, Enroll_Date) VALUES
+(1, 1, '2025-01-10'), (1, 2, '2025-02-15'),
+(2, 2, '2025-01-20'), (2, 3, '2025-03-01'),
+(3, 1, '2025-01-12'), (4, 4, '2025-02-28'),
+(5, 3, '2025-01-05'), (5, 1, '2025-03-10');
+-- PAYMENT
+INSERT INTO PAYMENT (Pay_ID, Member_ID, Amount, Pay_Date) VALUES
+(1, 1, 500.00, '2025-01-10'),
+(2, 1, 300.00, '2025-02-15'),
+(3, 2, 500.00, '2025-01-20'),
+(4, 3, 500.00, '2025-01-12'),
+(5, 4, 400.00, '2025-02-28'),
+(6, 5, 600.00, '2025-01-05');
+-- EQUIPMENT
+INSERT INTO EQUIPMENT (Equip_ID, Equip_Name, Condition_) VALUES
+(1, 'Football', 'Good'),
+(2, 'Swimming Goggles', 'New'),
+(3, 'Tennis Racket', 'Good'),
+(4, 'Basketball', 'Used'),
+(5, 'Goal Net', 'Good');
+-- USES
+INSERT INTO USES (Sport_ID, Equip_ID) VALUES
+(1, 1), (1, 5),
+(2, 2),
+(3, 3),
+(4, 4);4.3 Database Execution Screenshots (phpMyAdmin)
+[INSERT YOUR phpMyAdmin SCREENSHOTS HERE]
+Instructions: After running the DDL and DML queries in phpMyAdmin:
+1. Take a screenshot showing all created tables in the database
+2. Take screenshots showing the data inside each table
+3. Replace this placeholder page with those screenshots[PAGE 2 - MORE SCREENSHOTS]5. Software Implementation (GUI)
+5.1 Application Interface Overview
+A simple web-based graphical user interface (GUI) was developed to allow data entry
+into the Sports Club database. The interface provides forms for inserting new members,
+enrollments, payments, and other records directly into the database.
+[INSERT YOUR GUI SCREENSHOTS HERE]
+5.2 Front-end to Database Integration
+The web interface connects to the MySQL database using PHP (mysqli). Each form
+submits data via POST requests, which are processed by PHP scripts that execute the
+corresponding INSERT queries on the database.
+[INSERT INTEGRATION SCREENSHOTS HERE]6. Conclusion
+This project successfully demonstrated the complete lifecycle of database design and
+implementation for a Sports Club management system. Starting from the conceptual
+design phase with an Entity-Relationship Diagram (ERD) using Chen Notation, we
+identiﬁed eight core entities — Member, Dependent, Payment, Sport, Coach, Equipment,
+Facility, and Staff — along with their attributes and inter-relationships.
+The Enhanced ERD (EERD) introduced a generalization hierarchy by abstracting shared
+attributes into a PERSON superclass with Total, Overlapping specialization constraints,
+reﬂecting the real-world scenario where a person can simultaneously hold multiple roles
+(e.g., a coach who is also a club member).
+The logical design phase mapped the conceptual model to a relational schema
+consisting of 11 normalized tables. All tables were veriﬁed to satisfy First, Second, and
+Third Normal Forms (1NF, 2NF, 3NF), ensuring the elimination of data redundancy and
+the preservation of data integrity.
+The physical implementation translated the schema into executable SQL code (DDL for
+table creation, DML for data population), which was successfully deployed on a MySQL
+database through phpMyAdmin. A simple web-based GUI was also developed to
+facilitate data entry operations.
+This project reinforced key database engineering concepts including normalization
+theory, ER modeling, schema mapping rules, and the practical bridge between
+theoretical design and working software systems.
